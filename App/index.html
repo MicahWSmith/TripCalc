@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Kanit&display=swap" rel="stylesheet">
+    <style type="text/css">
+    .tg  {border-collapse:collapse;border-spacing:0;
+    }
+    .tg td{
+      font-family: 'Kanit', sans-serif;font-size:18px;padding:10px 5px;
+      border-style:solid;border-width:1px;overflow:hidden;word-break:normal;
+      border-color:rgb(0, 0, 0);
+    }
+    .tg th{
+      font-family: 'Kanit', sans-serif;font-size:18px;font-weight:normal;
+      padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;
+      word-break:normal;border-color:black;
+      }
+    .tg .tg-0lax{
+      text-align:left;vertical-align:top
+    }
+    </style>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+      #form {
+        background-image: url("images/road.jpg");
+        background-repeat: no-repeat;
+        background-size: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #garage {
+        border: 1px solid black;
+        background-color: rgba(255, 255, 255, 0.397);
+        height: 100%;
+        width: 30%;
+      }
+
+      #control {
+        max-width: 500px;
+        display: block;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      #leftCol {
+        border: 1px solid black;
+        background-color: rgb(233, 233, 233);
+         width: 30%;
+         height: 100%;
+      }
+
+      #rightCol {
+        border: 1px solid black;
+        width: 30%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.397);
+      }
+
+       /* Set the size of the div element that contains the map */
+      #map {
+        height: 300px;
+        width: 100%;
+        float:left;
+        margin-right: 30px;
+       }
+
+      p, #dynvolume{
+        color: rgb(0, 0, 0);
+        margin-left: 30px;
+      }
+
+       input[type=text], select {
+        font-size: 20px;
+        font-family: 'Kanit', sans-serif;
+        width: 90%;
+        padding: 2px 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid rgb(116, 116, 116);
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      #mLabel{
+        font-size: 20px;
+        font-family: 'Kanit', sans-serif;
+        padding: 2px 20px;
+        display: inline;
+        margin-left: 25px;
+        margin-right: auto;
+        border: 1px solid rgb(116, 116, 116);
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: rgb(185, 185, 185);
+      }
+
+      p[id="currentCar"]{
+        width: auto;
+        margin-right: 10px;
+        margin-left: 10px;
+        margin-top: 3px;
+        font-size: small;
+      }
+  /* ////// Buttons ////// */
+      button[id="save"]{
+        width: 60%;
+        cursor: pointer;
+        margin-top: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button[id="delete"]{
+        width: 60%;
+        cursor: pointer;
+        margin-top: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button[id="clear"]{
+        width: 60%;
+        cursor: pointer;
+        margin-top: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      button[id="go"]{
+        width: 60%;
+        background-color: #75816b;
+        border: none;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+        margin-top: 20px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+  /* ///////////////////// */
+      html, body {
+        font-family: 'Kanit', sans-serif;
+        height: 100%;
+      }
+
+      body {background-color: rgb(65, 65, 65);
+      }
+
+      #tripData {
+        background-color: rgb(255, 255, 255);
+        margin: auto;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!--The div elements for the map and message -->
+    <div id = "form">
+      <div id = "garage">
+        <div id="control">
+          <select id="myGarage" disabled></select>
+          <button id="delete" onclick="deleteCar();" style="height:30px;"><b>Delete Car From Garage</b></button>
+          <button id="clear" onclick="clearGarage();" style="height:30px;"><b>Clear Garage</b></button>
+          <button id="save" onclick="addToGarage();" style="height:30px;" disabled><b>Save Car to Garage</b></button>
+        </div>
+      </div>
+      <div id = "leftCol">
+        
+        <p>Enter starting address</p>
+        <input id="start" placeholder="Enter your address"
+        type="text" value = "102 Holly Rd Orwigsburg, PA"/>
+        <p>Enter ending address</p>
+        <input id="finish" type="text" value = "236 S 3rd St North Wales, PA"/>
+        <br>
+        <label for="metric" id="mLabel">Metric</label>
+        <input type="checkbox" id="metric" name="metric" value="metric">
+        <br>
+        <br>
+        <nobr id="dynvolume">Enter fuel price per </nobr><nobr id="volume"></nobr>
+        <input id="price" type="text" value = "2.5"/>
+        <select id="year"></select>
+        <select id="make" disabled></select>
+        <select id="model" disabled></select>
+        <select id="option" disabled></select>
+        <p id="currentCar"></p>
+        <button id="go" onclick="geocode();" style="height:30px;" disabled><b>GO</b></button>
+      </div>
+      <div id="rightCol">
+        <div id="map"></div>
+        <div id="data">
+          <h1 id="info1"></h1>
+          <table class="tg" id = "tripData">
+            <tr>
+              <th class="tg-0lax">Trip distance</th>
+              <th class="tg-0lax" id = "distance"></th>
+            </tr>
+            <tr>
+              <th class="tg-0lax">Trip duration</th>
+              <th class="tg-0lax" id = "duration"></th>
+            </tr>
+            <tr>
+              <th class="tg-0lax">Trip fuel cost</th>
+              <th class="tg-0lax" id = "tripCost"></th>
+            </tr>
+            <tr>
+              <th class="tg-0lax">Combined economy</th>
+              <th class="tg-0lax" id = "econCmb"></th>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+    <script>
+// Initialize and add the map
+let isMetric;
+let fuelType;
+let volumeUnit = "gallon";
+let actEcon;
+let fuelUnit = "MPG";
+let distUnit = "mi";
+let econCit;
+let econHwy;
+let econCmb;
+let electEconCmb;
+let price;
+let make;
+let model;
+let year;
+let option;
+let displacement;
+let cylinders;
+let transmission;
+let carId;
+let map;
+let currentCar;
+let myGarage = [];//Saved Car Array//
+let date = new Date();
+
+// Check if browser supports local storage //
+let storageCompatible = false;
+//clearGarage();
+if (typeof(Storage) !== "undefined") {
+  storageCompatible = true;
+  //localStorage.setItem("myGarage", JSON.stringify(myGarage));
+  if(localStorage.getItem("myGarage")){
+    myGarage=JSON.parse(localStorage.getItem("myGarage"));
+  }
+  else {
+    localStorage.setItem("myGarage", JSON.stringify(myGarage));
+  }
+  console.log(localStorage.getItem("myGarage"));
+} 
+/////////////////////////////////////////////
+for(i=date.getFullYear();i>=1984;i--) {
+  if(i==date.getFullYear()){
+    $('#year').append('<option value="'+""+'">'+"Vehicle Year"+'</option>');
+    $('#make').append('<option value="'+""+'">'+"Make"+'</option>');
+    $('#model').append('<option value="'+""+'">'+"Model"+'</option>');
+    $('#option').append('<option value="'+""+'">'+"Option"+'</option>');
+  }
+  $('#year').append('<option value="'+i+'">'+i+'</option>');
+}
+
+$(document).ready(function(){
+  $("#rightCol").hide();
+  initGarage();
+  if(myGarage){
+    document.getElementById("go").disabled = false;
+    $("#go").css("background-color", "#4CAF50");
+    carId = document.getElementById("myGarage").value;
+    getVehicleInfo(carId);
+  }
+  $("#go").click(function(){
+    $("#rightCol").show();
+  });
+});
+
+$('#volume').html(volumeUnit);
+$('#metric').change(function () {
+    if (this.checked) {
+      isMetric = true;
+      volumeUnit = "liter";
+      fuelUnit = "L/100km";
+      distUnit = "km";
+    }
+    else{
+      isMetric = false;
+      volumeUnit = "gallon";
+      fuelUnit = "MPG";
+      distUnit = "mi";
+    }
+    if (fuelType == "Electricity"){
+      volumeUnit = "kWh";
+    }
+    $('#volume').html(volumeUnit);
+});
+
+$('#year').on('change', function() {
+  $('#make').empty();
+  $('#make').append('<option value="'+""+'">'+"Make"+'</option>');
+  if(this.value!=""){
+    document.getElementById("make").disabled = false;
+  }
+  else{
+    document.getElementById("make").disabled = true;
+  }
+  $('#model').empty();
+  $('#model').append('<option value="'+""+'">'+"Model"+'</option>');
+  document.getElementById("model").disabled = true;
+  $('#option').empty();
+  $('#option').append('<option value="'+""+'">'+"Option"+'</option>');
+  document.getElementById("option").disabled = true;
+  getMakes( this.value );
+  year = this.value;
+  if(currentCar==undefined){
+    document.getElementById("go").disabled = true;
+    $("#go").css("background-color", "#75816b");
+
+    document.getElementById("save").disabled = true;
+  }
+});
+
+$('#make').on('change', function() {
+  $('#model').empty();
+  $('#model').append('<option value="'+""+'">'+"Model"+'</option>');
+  if(this.value!=""){
+    document.getElementById("model").disabled = false;
+  }
+  else{
+    document.getElementById("model").disabled = true;
+  }
+  $('#option').empty();
+  $('#option').append('<option value="'+""+'">'+"Option"+'</option>');
+  document.getElementById("option").disabled = true;
+  getModels( this.value );
+  make = this.value;
+  if(currentCar==undefined){
+    document.getElementById("go").disabled = true;
+    $("#go").css("background-color", "#75816b");
+
+    document.getElementById("save").disabled = true;
+  }
+});
+
+$('#model').on('change', function() {
+  $('#option').empty();
+  $('#option').append('<option value="'+""+'">'+"Option"+'</option>');
+  if(this.value!=""){
+    document.getElementById("option").disabled = false;
+  }
+  else{
+    document.getElementById("option").disabled = true;
+  }
+  getOptions( this.value );
+  model = this.value;
+  if(currentCar==undefined){
+    document.getElementById("go").disabled = true;
+    $("#go").css("background-color", "#75816b");
+
+    document.getElementById("save").disabled = true;
+  }
+});
+
+$('#option').on('change', function() {
+  if(this.value!=""){
+    document.getElementById("go").disabled = false;
+    $("#go").css("background-color", "#4CAF50");
+
+    document.getElementById("save").disabled = false;
+  }
+  else if(currentCar==undefined){
+    document.getElementById("go").disabled = true;
+    $("#go").css("background-color", "#75816b");
+
+    document.getElementById("save").disabled = true;
+  }
+  carId = this.value;
+  getVehicleInfo(this.value);
+}); 
+
+$('#myGarage').change(function () {
+  getVehicleInfo(this.value);
+  document.getElementById("go").disabled = false;
+  $("#go").css("background-color", "#4CAF50");
+  document.getElementById("save").disabled = true;
+});
+
+function getMakes(year){
+  $.ajax({
+	url: "https://www.fueleconomy.gov/ws/rest/vehicle/menu/make?year="+year,
+	type: "GET",
+	dataType: "xml",
+	success: function(xml)
+	{
+		$(xml).find('menuItem').each(function(){
+                    let makes = $(this).find("text").text();
+                    $('#make').append('<option value="'+makes+'">'+makes+'</option>');
+                });
+	},
+	error: function(xhr, ajaxOptions, thrownError)
+	{
+		console.log(xhr.status);
+		console.log(thrownError);
+	}
+});
+}
+
+function getModels(make){
+  $.ajax({
+	url: "https://www.fueleconomy.gov/ws/rest/vehicle/menu/model?year="+year+"&make="+make,
+	type: "GET",
+	dataType: "xml",
+	success: function(xml)
+	{
+		$(xml).find('menuItem').each(function(){
+                    let models = $(this).find("text").text();
+                    $('#model').append('<option value="'+models+'">'+models+'</option>');
+                });
+	},
+	error: function(xhr, ajaxOptions, thrownError)
+	{
+		console.log(xhr.status);
+		console.log(thrownError);
+	}
+});
+}
+
+function getOptions(model){
+  $.ajax({
+  url: "https://www.fueleconomy.gov/ws/rest/vehicle/menu/options?year="+year+"&make="+make+"&model="+model,
+	type: "GET",
+	dataType: "xml",
+	success: function(xml)
+	{
+		$(xml).find('menuItem').each(function(){
+                    let options = $(this).find("text").text();
+                    let carIds = $(this).find("value").text();
+
+                    $('#option').append('<option value="'+carIds+'">'+options+'</option>');
+                });
+	},
+	error: function(xhr, ajaxOptions, thrownError)
+	{
+		console.log(xhr.status);
+		console.log(thrownError);
+	}
+});
+}
+
+function getVehicleInfo(carId){
+  $.ajax({
+  url: "https://www.fueleconomy.gov/ws/rest/vehicle/"+carId,
+	type: "GET",
+	dataType: "xml",
+	success: function(xml) {
+		$(xml).find('vehicle').each(function(){
+      let carString;
+      year = $(this).find("year").text();
+      make = $(this).find("make").text();
+      model = $(this).find("model").text();
+      econCmb = $(this).find("comb08").text();
+      fuelType = $(this).find("fuelType").text();
+      electEconCmb = $(this).find("combE").text();
+      displacement = $(this).find("displ").text();
+      cylinders = $(this).find("cylinders").text();
+      transmission = $(this).find("trany").text();
+
+      currentCar = new Car(year, make, model, displacement, cylinders, transmission, carId);
+
+      $('currentCar').empty();
+      if (fuelType == "Electricity"){
+        carString = currentCar.year+" "+currentCar.make+" "+currentCar.model+" "+"\n"+"("+transmission+")";
+      }
+      else {
+        carString = currentCar.year+" "+currentCar.make+" "+currentCar.model+" "+"\n"+"("+displacement+" L "+cylinders+"-cylinder"+" "+transmission+")";
+      }
+
+      $('#currentCar').empty();
+      $('#currentCar').append("Selected Vehicle: "+carString);
+
+      if (fuelType == "Electricity"){
+        volumeUnit = "kWh";
+      }
+      else if(isMetric==true){
+        volumeUnit = "liter";
+      }
+      else{
+        volumeUnit = "gallon";
+      }
+      $('#volume').html(volumeUnit);
+    });
+	},
+	error: function(xhr, ajaxOptions, thrownError){
+		console.log(xhr.status);
+		console.log(thrownError);
+	}
+  });
+}
+/////////   Calculate trip cost   ///////////
+function cost(dist, econ, price){
+  return Math.round(((dist/econ)*price) * 10) / 10;
+}
+////////////////////////////////////////////
+function geocode(){
+  let startLat
+  let startLng
+  let endLat;
+  let endLng;
+  let start = $('#start').val();
+  let finish = $('#finish').val();
+  econ = $('#econ').val();
+  price = $('#price').val();
+  axios.get('https://maps.googleapis.com/maps/api/geocode/json',{
+    params:{
+      address:start,
+      key:'KEYREMOVED'
+    }
+  })
+  .then(function(response){
+    // Log Full Response
+    console.log(response);
+
+    //Lat/Lng values
+    startLat = (response.data.results[0].geometry.location.lat);
+    startLng = (response.data.results[0].geometry.location.lng);
+    axios.get('https://maps.googleapis.com/maps/api/geocode/json',{
+    params:{
+      address:finish,
+      key:'KEYREMOVED'
+    }
+  })
+  .then(function(response){
+    // Log Full Response
+    console.log(response);
+
+    //Lat/Lng values
+    endLat = (response.data.results[0].geometry.location.lat);
+    endLng = (response.data.results[0].geometry.location.lng);
+    initMap(startLat, startLng, endLat, endLng);
+  })
+  .catch(function(error){
+    console.log(error);
+  })
+  })
+  .catch(function(error){
+    console.log(error);
+  })
+
+  
+}
+function initMap(startLat, startLng, endLat, endLng) {
+  // The map, centered on Central Park
+  const center = {lat: startLat, lng: startLng};
+  const options = {zoom: 9, scaleControl: true, center: center};
+  map = new google.maps.Map(
+      document.getElementById('map'), options);
+  // Locations of landmarks
+  const dakota = {lat: startLat, lng: startLng};
+  const frick = {lat: endLat, lng: endLng};
+  // The markers for The Dakota and The Frick Collection
+  let mk1 = new google.maps.Marker({position: dakota, map: map});
+  let mk2 = new google.maps.Marker({position: frick, map: map});
+  let directionsService = new google.maps.DirectionsService();
+  let directionsRenderer = new google.maps.DirectionsRenderer();
+  directionsRenderer.setMap(map); // Existing map object displays directions
+  // Create route from existing points used for markers
+  const route = {
+      origin: dakota,
+      destination: frick,
+      travelMode: 'DRIVING'
+  }
+
+  directionsService.route(route,
+    function(response, status) { // anonymous function to capture directions
+      if (status !== 'OK') {
+        window.alert('Directions request failed due to ' + status);
+        return;
+      } else {
+        directionsRenderer.setDirections(response); // Add route to the map
+        let directionsData = response.routes[0].legs[0]; // Get data about the mapped route
+        if (!directionsData) {
+          window.alert('Directions request failed');
+          return;
+        }
+        else {
+          getDistTime(directionsData.distance.text, directionsData.duration.text);
+        }
+      }
+    });
+}
+function getDistTime(dist, time) {
+  let formDist = dist.split(" ");
+  let formTime = time.split(" ");
+  let distValue = parseFloat(formDist[0].replace(/,/g, ''));
+  let tempDist = distValue;
+  let tempPrice = price;
+  let evCost;
+  let evEcon;
+
+  if(formDist[1]=="km"&&fuelType != "Electricity"){
+    tempDist = distValue*0.621371;
+  }
+  if(isMetric==true&&fuelType != "Electricity"){
+    tempPrice = price*3.78541;
+  }
+  if(fuelType == "Electricity"){
+    evCost = ((electEconCmb/100)*tempDist)*price;
+    evEcon = electEconCmb;
+  }
+  
+  console.log(formDist[1] + "  " + formTime[0] + "");
+
+          actEcon = econCmb;
+          if(isMetric==false&&formDist[1]=="km"){
+            distValue = Math.round((distValue*0.621371) * 10) / 10;
+          }
+          else if(isMetric==true){
+            if(formDist[1]=="mi"){
+              distValue = Math.round((distValue*1.60934) * 10) / 10;
+            }
+            actEcon = Math.round((235.214583/econCmb) * 10) / 10;
+          }
+
+          if(fuelType == "Electricity"){
+            fuelUnit = "kWh/100mi";
+            data = Math.round(evCost * 10) / 10;
+            if(isMetric==true){
+              actEcon = Math.round((electEconCmb*0.621371) * 10) / 10;
+              fuelUnit="kWh/100km";
+            }
+            else{
+              actEcon = Math.round(electEconCmb * 10) / 10;
+            }
+          }
+          else if (fuelType != "Electricity") {
+            if(isMetric==true){
+              volumeUnit = "liter";
+              fuelUnit = "L/100km";
+            }
+            else if(isMetric==false){
+              volumeUnit = "gallon";
+              fuelUnit = "MPG";
+            }
+            data = cost(tempDist, econCmb, tempPrice);
+          }
+
+          console.log(data);
+
+          $('#tripCost').html("$" + data);
+          $('#econCmb').html(actEcon + " " + fuelUnit);
+          $('#duration').html(time);
+          $('#distance').html(distValue+" "+distUnit);
+}
+
+class Car {
+  constructor (year, make, model, displacement, cylinders, transmission, carId){
+    this.year = year;
+    this.make = make;
+    this.model = model;
+    this.displacement = displacement;
+    this.cylinders = cylinders;
+    this.transmission = transmission;
+    this.carId = carId;
+  }
+}
+///// Read Garage Array and Fill List /////////
+function initGarage(){
+  document.getElementById("myGarage").disabled = false;
+  $('#myGarage').empty();
+  for (i=0;i<myGarage.length;i++) {
+    if(myGarage[i].displacement!=""||myGarage[i].cylinders!=""){
+      $('#myGarage').append('<option value="'+myGarage[i].carId+'">'+myGarage[i].year+" "+myGarage[i].make+" "+myGarage[i].model);
+      $('#myGarage').append('<option disabled style="'+"font-style:italic"+'">'+'('+myGarage[i].displacement+" L "+myGarage[i].cylinders+"-cylinder"+" "+myGarage[i].transmission+")"+'</option>');
+    }
+    else{
+      $('#myGarage').append('<option value="'+myGarage[i].carId+'">'+myGarage[i].year+" "+myGarage[i].make+" "+myGarage[i].model+'</option>');
+      $('#myGarage').append('<option disabled style="'+"font-style:italic"+'">'+myGarage[i].transmission+")"+'</option>');
+    }
+  }
+}
+///////// Add car to myGarage array //////////
+function addToGarage(){
+  if(currentCar!=undefined){
+    myGarage.push(currentCar);
+  }
+  initGarage();
+/////// If storage compatible save locally //
+  if(storageCompatible){
+    localStorage.myGarage = JSON.stringify(myGarage);
+  }
+}
+/////// clear Garage ///////////////////////
+function clearGarage(){
+  $('#myGarage').empty();
+  myGarage = [];
+  localStorage.setItem("myGarage", JSON.stringify(myGarage));
+}
+////// Delete Selected Car ////////////////
+function deleteCar(){
+  for (i=0;i<myGarage.length;i++) {
+    if(myGarage[i].carId==currentCar.carId){
+      myGarage.splice(i, 1);
+      localStorage.setItem("myGarage", JSON.stringify(myGarage));
+      initGarage();
+    }
+  }
+}
+///////////////////////////////////////////
+    </script>
+    <!--Load the API from the specified URL -- remember to replace YOUR_API_KEY-->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=KEYREMOVED&libraries=places"> //
+    </script>
+</html>
