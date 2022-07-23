@@ -1,4 +1,5 @@
 # TripCalc
+<h3>See my updated version here! - https://trip-calculator-98654.web.app/home</h3>
 Progressive Web App: Trip cost calculator using JS interacting with various APIs to collect accurate geographical and technical information in order to calculate the energy or fuel cost of a road trip in North America.
 <br><br><b>Note: I excluded my google developer api key from the project at the end of my index.html file. If you want to try the App out you will have to get one from the google developer console. Also this was one of my first projects as I was learning JS, and web development and is not entirely finished so there are console logs and some rough calculations.</b>
 <h2>App Demo</h2>
